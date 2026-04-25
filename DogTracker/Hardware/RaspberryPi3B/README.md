@@ -12,6 +12,7 @@ Before you begin, make sure you have the following ready:
 - 2.4 GhZ USB NIC [Network Card with Mesh capabilites ex. AR9271](https://www.amazon.com/dp/B07FVRKCZJ?ref=ppx_yo2ov_dt_b_fed_asin_title)
 - Ethernet cable (for client devices)
 - built in wifi card (for management interface)
+- USB-C ethernet adapter for Client Android device
 
 ---
 
