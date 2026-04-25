@@ -1,6 +1,6 @@
-# 🖥️ Libre Computer Board — Node Setup Guide
+# 🖥️ Rasbperry PI Board — Node Setup Guide
 
-> A step-by-step guide to flashing Raspbian Bookworm to eMMC and bootstrapping a node environment on a Libre Computer board.
+> A step-by-step guide to flashing Raspbian to a node environment on a Raspberry PI board.
 
 ---
 
@@ -8,11 +8,10 @@
 
 Before you begin, make sure you have the following ready:
 
-- Libre Computer board with **eMMC or other storage media already installed**
-- USB keyboard
-- USB drive (to boot the OS installer)
-- Ethernet cable
-- USB Ethernet adapter (for management interface)
+- Raspberry PI board
+- 2.4 GhZ USB NIC [Network Card with Mesh capabilites ex. AR9271](https://www.amazon.com/dp/B07FVRKCZJ?ref=ppx_yo2ov_dt_b_fed_asin_title)
+- Ethernet cable (for client devices)
+- built in wifi card (for management interface)
 
 ---
 
@@ -20,13 +19,11 @@ Before you begin, make sure you have the following ready:
 
 ### Step 1 — Download & Flash the OS to USB
 
-Download the Raspbian Bookworm image and flash it to your USB drive:
+Download the Raspberry PI Imager tool, Follow Prompts to get the latest cmdline version of Raspbian, if available set up user, WIFI and ssh for managment. 
 
 ```
-https://distro.libre.computer/ci/raspbian/12/2023-10-10-raspbian-bookworm-arm64-lite+arm64.img.xz
+https://www.raspberrypi.com/software/
 ```
-
-> **Tip:** Use [Balena Etcher](https://etcher.balena.io/) , [Raspberry PI Imager](https://www.raspberrypi.com/software/) `dd` to flash the image to your USB drive.
 
 ---
 
@@ -34,22 +31,21 @@ https://distro.libre.computer/ci/raspbian/12/2023-10-10-raspbian-bookworm-arm64-
 
 Plug in the following before powering on:
 
-- 🔌 Ethernet cable
-- ⌨️ USB keyboard
-- 💾 USB drive (with the flashed OS)
+- 🔌 Ethernet cable (for client device)
+- 💾 Mircro SD card (with the flashed OS)
 - ✅ Ensure eMMC or target storage is already seated on the board
 
 ---
 
 ### Step 3 — Power On
 
-Power on the board and boot from the USB drive.
+Power on the board and boot from the Mirco SD Card.
 
 ---
 
-### Step 4 — Create User
+### Step 4 — Connect to PI for Managment
 
-During first-boot setup, create the following user:
+Once Pi has booted SSH into PI.
 
 ```
 Username: nodeuser
@@ -176,4 +172,4 @@ This project is open source. See [LICENSE](./LICENSE) for details.
 
 ---
 
-*Built for Libre Computer boards running Raspbian Bookworm (arm64)*
+*Built for Raspberry PI boards running Raspbian Bookworm (arm64)*
