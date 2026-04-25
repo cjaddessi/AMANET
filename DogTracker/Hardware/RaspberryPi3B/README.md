@@ -8,7 +8,8 @@
 
 Before you begin, make sure you have the following ready:
 
-- Raspberry PI board
+- Raspberry PI board & Power Source
+- Micro SD card
 - 2.4 GhZ USB NIC [Network Card with Mesh capabilites ex. AR9271](https://www.amazon.com/dp/B07FVRKCZJ?ref=ppx_yo2ov_dt_b_fed_asin_title)
 - Ethernet cable (for client devices)
 - built in wifi card (for management interface)
@@ -18,7 +19,7 @@ Before you begin, make sure you have the following ready:
 
 ## 🚀 Setup Steps
 
-### Step 1 — Download & Flash the OS to USB
+### Step 1 — Download & Flash the OS to Micro SD card
 
 Download the Raspberry PI Imager tool, Follow Prompts to get the latest cmdline version of Raspbian, if available set up user, WIFI and ssh for managment. 
 
