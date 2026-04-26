@@ -39,7 +39,7 @@ Plug in the following before powering on:
 
 ### Step 3 — Power On
 
-Power on the board and boot from the Mirco SD Card.
+Power on the board and boot from the Mirco SD Card..
 
 ---
 
