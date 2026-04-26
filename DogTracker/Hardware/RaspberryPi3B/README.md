@@ -53,17 +53,28 @@ Wait about 1 minute before plugging in devices:
 
 ### Step 5 — Connect to PI for Managment
 
-You may need to login to your router or perform a network scan to find your pi on the network, Once the IP has been located connect via ssh using the "nodeuser" account.
+You may need to login to your router or perform a network scan to find your pi on the network, Once the IP has been located connect via SSH using the "nodeuser" account.
 
 ---
 
-### Step 6 — Download the Install.sh from this Git Repo
+### Step 6 — Update Pi
 
-From within the booted system, download the Raspbian image to flash to eMMC:
+Update the local packages on the pi:
 
 ```bash
 sudo apt update
-sudo apt upgrade
+sudo apt upgrade -y
+sudo reboot now
+```
+> **Tip:** Run Each Command individually
+
+---
+
+### Step 7 — Download the Install.sh from this Git Repo
+
+Change permissions on file so that it can be executed, Then execute file as sudo user
+
+```bash
 wget https://raw.githubusercontent.com/cjaddessi/AMANET/main/DogTracker/Hardware/RaspberryPi3B/install.sh
 chmod 777 install.sh
 sudo ./install.sh
@@ -72,33 +83,54 @@ sudo ./install.sh
 
 ---
 
-### Step 7 — Reboot Device
+### Step 8 — Set Up ATAK relay script
 
-Change permissions on file so that it can be executed, Then execute file as sudo user
+Download the `simple_ATAK_relay.py` script. Be sure to make modifications needed to source and dest ips.
 
 ```bash
-chmod 777 install.sh
-sudo .\install.sh
+wget https://raw.githubusercontent.com/cjaddessi/AMANET/main/DogTracker/simple_ATAK_relay.py
 ```
 
 ---
 
-### Step 8 — Flash the Image to eMMC
+### Step 9 — Set up service for ATAK script
 
-Use `rpi-imager` in CLI mode to flash the downloaded image to the eMMC chip:
-
+Create a systemd service file so the relay script runs automatically on boot:
 ```bash
-sudo rpi-imager --cli 2023-10-10-raspbian-bookworm-arm64-lite+arm64.img.xz /dev/mmcblk0
+sudo nano /etc/systemd/system/atak-relay.service
 ```
 
-> ⚠️ **Warning:** This will overwrite everything on `/dev/mmcblk0`. Double-check you're targeting the correct device.
+Paste the following into the file:
 
----
+```ini
+[Unit]
+Description=ATAK Relay Service
+After=network.target
 
-### Step 9 — Shut Down the Board
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/nodeuser
+ExecStart=/usr/bin/python3 /home/nodeuser/simple_ATAK_relay.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Save and exit (`Ctrl+X`, `Y`, `Enter`), then enable and start the service:
 
 ```bash
-sudo shutdown now
+sudo systemctl daemon-reload
+sudo systemctl enable atak-relay.service
+sudo systemctl start atak-relay.service
+```
+
+Verify it is running:
+
+```bash
+sudo systemctl status atak-relay.service
 ```
 
 ---
