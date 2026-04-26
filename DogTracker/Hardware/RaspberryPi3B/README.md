@@ -21,7 +21,7 @@ Before you begin, make sure you have the following ready:
 
 ### Step 1 — Download & Flash the OS to Micro SD card
 
-Download the Raspberry PI Imager tool, Follow Prompts to get the latest cmdline version of Raspbian, if available set up user, WIFI and ssh for managment. 
+Download the Raspberry PI Imager tool, Select your device ex. "Raspberry Pi 3" -> "Raspberry PI OS (64-bit)" -> Configure Hostname "node" -> Timezone "UTC" -> Username: "nodeuser" -> Choose WiFI -> Enable SSH: "Authentication Mechanism: Use Password" -> Enable Raspbery Pi Connect: "OFF" -> Write. 
 
 ```
 https://www.raspberrypi.com/software/
@@ -33,9 +33,7 @@ https://www.raspberrypi.com/software/
 
 Plug in the following before powering on:
 
-- 🔌 Ethernet cable (for client device)
 - 💾 Mircro SD card (with the flashed OS)
-- ✅ Ensure eMMC or target storage is already seated on the board
 
 ---
 
@@ -45,45 +43,42 @@ Power on the board and boot from the Mirco SD Card.
 
 ---
 
-### Step 4 — Connect to PI for Managment
+### Step 4 — Connect WAN Interface device(s) 
 
-Once Pi has booted SSH into PI.
+Wait about 1 minute before plugging in devices:
+- 🛜 2.4 Ghz USB NIC
 
-```
-Username: nodeuser
-```
 
 ---
 
-### Step 5 — Enable SSH
+### Step 5 — Connect to PI for Managment
 
-Make remote access easier by starting SSH:
-
-```bash
-sudo systemctl start ssh
-```
+You may need to login to your router or perform a network scan to find your pi on the network, Once the IP has been located connect via ssh using the "nodeuser" account.
 
 ---
 
-### Step 6 — Download the OS Image Locally
+### Step 6 — Download the Install.sh from this Git Repo
 
 From within the booted system, download the Raspbian image to flash to eMMC:
 
 ```bash
-wget https://distro.libre.computer/ci/raspbian/12/2023-10-10-raspbian-bookworm-arm64-lite+arm64.img.xz
+sudo apt update
+sudo apt upgrade
+wget https://raw.githubusercontent.com/cjaddessi/AMANET/main/DogTracker/Hardware/RaspberryPi3B/install.sh
+chmod 777 install.sh
+sudo ./install.sh
 ```
+> **Tip:** Run Each Command individually
 
 ---
 
-### Step 7 — Install Dependencies & rpi-imager
+### Step 7 — Reboot Device
 
-Update the system and install the tools needed to flash the image:
+Change permissions on file so that it can be executed, Then execute file as sudo user
 
 ```bash
-sudo apt update
-sudo apt install rpi-imager
-sudo apt install libegl1-mesa libgl1-mesa-glx
-sudo apt install libopengl0
+chmod 777 install.sh
+sudo .\install.sh
 ```
 
 ---
