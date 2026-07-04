@@ -1,0 +1,8 @@
+dtc -@ \
+    -I dts \
+    -O dtb \
+    -o morse-mm610x-spi.dtbo \
+    morse-spi.dts
+
+
+sudo cp morse-mm610x-spi.dtbo /boot/firmware/overlays/
