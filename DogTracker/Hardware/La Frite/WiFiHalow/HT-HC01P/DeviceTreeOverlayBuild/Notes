@@ -1,0 +1,9 @@
+
+
+dtc -@ -I dts -O dtb -o morse-spi.dtbo morse-spi.dts
+
+sudo cp morse-spi.dtbo /lib/firmware/libretech/device-tree/amlogic/
+
+sudo ldto enable morse-spi
+
+sudo ldto merge lafrite-morse-spi

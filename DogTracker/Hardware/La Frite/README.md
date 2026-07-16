@@ -13,6 +13,8 @@ Before you begin, make sure you have the following ready:
 - USB drive (to boot the OS installer)
 - Ethernet cable
 - USB Ethernet adapter (for management interface)
+- Power Source For La Frite
+- HDMI Cord & Monitor
 
 ---
 
@@ -20,7 +22,7 @@ Before you begin, make sure you have the following ready:
 
 ### Step 1 — Download & Flash the OS to USB
 
-Download the Raspbian Bookworm image and flash it to your USB drive:
+Download the Raspbian From Libre Computers and flash it to your USB drive:
 
 ```
 https://distro.libre.computer/ci/raspbian/12/2023-10-10-raspbian-bookworm-arm64-lite+arm64.img.xz
@@ -38,6 +40,7 @@ Plug in the following before powering on:
 - ⌨️ USB keyboard
 - 💾 USB drive (with the flashed OS)
 - ✅ Ensure eMMC or target storage is already seated on the board
+- 🖥️ Ensure HDMI cable is plugged into La Frite and Monitor
 
 ---
 

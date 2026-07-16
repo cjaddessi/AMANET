@@ -1,0 +1,68 @@
+All Steps performed on raspberry pi 3 B ended up downgrading kernel to 6.6 bc i was not watching the default git links to older version. 
+1.) Grab morse micro Kernel that has been patch to have 802.11ah 
+git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/MorseMicro/rpi-linux.git
+2.) Your Pi needs the right tools (compilers, parsers, etc.) to translate the C code into machine code. Run this to grab everything you need: 
+sudo apt update
+sudo apt install git bc bison flex libssl-dev make libc6-dev libncurses5-dev -y
+2.) Navigate into morse micro rpi-linux folder:
+cd rpi-linux
+3.) You need to tell the build system which specific chip architecture it's building for so it enables the correct baseline drivers.  these should be listed inthe Kernel folder
+-Raspberry pi 3 or 4: 
+make bcm2711_defconfig
+4.) Compile the Kernel (takes a while)  $(nproc)  uses all available cpus
+make -j$(nproc) Image.gz modules dtbs
+if error run (runs on less cores):
+make clean
+make -j2 Image.gz modules dtbs
+5.) Install Kernel moduels
+sudo make modules_install
+
+Copy the Kernel and Device Trees:
+sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
+sudo cp arch/arm64/boot/dts/overlays/*.dtb* /boot/firmware/overlays/
+sudo cp arch/arm64/boot/dts/overlays/README /boot/firmware/overlays/
+sudo cp arch/arm64/boot/Image.gz /boot/firmware/kernel8.img
+
+6.) reboot:
+sudo reboot
+7.) run  uname -a  to see new kernel
+8.) install morse_firmware
+cd ~
+git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/MorseMicro/morse-firmware.git
+cd morse-firmware
+sudo make install
+9.) Clone and compile mores_driver
+cd ~ 
+git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/MorseMicro/morse_driver.git
+cd morse_driver
+make KERNEL_SRC=/home/nodeuser/rpi-linux CONFIG_WLAN_VENDOR_MORSE=m CONFIG_MORSE_SPI=y CONFIG_MORSE_USER_ACCESS=y CONFIG_MORSE_VENDOR_COMMAND=y CONFIG_MORSE_COUNTRY=US
+10.) Load the module
+sudo depmod -a
+sudo modprobe morse
+11.) verify the hardware is recognized:
+dmesg | grep -i morse
+ dmesg | tail -n 30
+dtparam=spi=on dmesg | grep -i morse
+dmesg | grep spi
+12.) sudo nano /boot/firmware/config.txt # verify 
+# Enable the SPI bus dtparam=spi=on # Load the Morse Micro SPI map #dtoverlay=morse-spi
+13.) reboot
+
+sudo modprobe -r morse
+sudo modprobe morse bcf=bcf_mf08651_us.bin
+dmesg | tail -50
+
+Go into DeviceTreeOverlayBuild and run Notes file commands
+
+
+Testing bcf stuff here 
+sudo nano /etc/modprobe.d/morse.conf
+paste & save: options morse bcf=bcf_mf08651_us.bin country=US
+sudo depmod -a
+
+wget https://resource.heltec.cn/download/HT-HC01P/BCF/driver_1_15_3/bcf_HC0P.bin
+chmod 755 bcf_HC0P.bin
+sudo cp bcf_HC0P.bin /usr/lib/firmware/morse
+sudo modprobe -r morse 
+sudo modprobe morse bcf=bcf_HC0P.bin
+dmesg | tail -50 

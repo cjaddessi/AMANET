@@ -1,0 +1,38 @@
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+    compatible = "libretech,cc-amlogic", "amlogic,meson-g12a";
+
+    fragment@0 {
+        target = <&spicc>;
+        __overlay__ {
+            status = "okay";
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            /* Your Chip Select Pin: GPIOX_10 (Pin 24) */
+            cs-gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
+
+            mm6108@0 {
+                compatible = "morse,mm610x-spi";
+                reg = <0>;
+                spi-max-frequency = <10000000>;
+
+                /* Your RESET Pin: GPIOH_9 (Pin 18) */
+                reset-gpios = <&gpio 23 GPIO_ACTIVE_LOW>; 
+
+                /* Your IRQ Pin: GPIOH_8 (Pin 16) */
+                spi-irq-gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
+
+                /* Additional Optional Power Control Pins from your Pinout if needed */
+                /* WAKE: GPIODV_27 (Pin 29), BUSY: GPIOAO_2 (Pin 31) */
+
+                status = "okay";
+            };
+        };
+    };
+};
