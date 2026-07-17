@@ -1,9 +1,15 @@
-
+# not deeded sudo cp morse-spi.dtbo /lib/firmware/libretech/device-tree/amlogic/
 
 dtc -@ -I dts -O dtb -o morse-spi.dtbo morse-spi.dts
 
-sudo cp morse-spi.dtbo /lib/firmware/libretech/device-tree/amlogic/
+sudo cp morse-spi.dtbo /boot/efi/overlays/ 
 
+
+# # Enable the SPI bus dtparam=spi=on 
+# # add dtoverlay=morse-spi to bottom of file
+sudo nano /boot/efi/config.txt
+
+# belwo not neede?
 sudo ldto enable morse-spi
 
 sudo ldto merge lafrite-morse-spi

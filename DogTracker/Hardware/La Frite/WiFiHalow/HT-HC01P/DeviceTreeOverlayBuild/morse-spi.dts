@@ -1,38 +1,42 @@
 /dts-v1/;
 /plugin/;
 
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/interrupt-controller/irq.h>
-
 / {
-    compatible = "libretech,cc-amlogic", "amlogic,meson-g12a";
+    /* Target the Amlogic meson platform instead of Broadcom */
+    compatible = "librecomp,aml-s805x-cc", "amlogic,meson-gxl";
 
     fragment@0 {
-        target = <&spicc>;
+        /* On La Frite, the main SPI controller on the header is typically spicc0 or spi0 */
+        target = <&spicc0>; 
         __overlay__ {
             status = "okay";
             #address-cells = <1>;
-            #size-cells = <0>;
+            #size-cells   = <0>;
 
-            /* Your Chip Select Pin: GPIOX_10 (Pin 24) */
-            cs-gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
+            /* CS pin: Chip 1, Line 89 (Physical Pin 24) */
+            /* 1 means GPIO_ACTIVE_LOW */
+            cs-gpios = <&gpio 89 1>; 
 
             mm6108@0 {
                 compatible = "morse,mm610x-spi";
                 reg = <0>;
                 spi-max-frequency = <10000000>;
 
-                /* Your RESET Pin: GPIOH_9 (Pin 18) */
-                reset-gpios = <&gpio 23 GPIO_ACTIVE_LOW>; 
+                /* RESET: Chip 1, Line 76 (Physical Pin 29) */
+                reset-gpios    = <&gpio 76 1>;
 
-                /* Your IRQ Pin: GPIOH_8 (Pin 16) */
-                spi-irq-gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
+                /* POWER: WAKE is Chip 0 Line 0 (Pin 5) | BUSY is Chip 1 Line 80 (Pin 26) */
+                /* Note: Chip 0 uses the AO (Always-On) GPIO controller bank */
+                power-gpios    = <&gpio_ao 0 0>, <&gpio 80 0>;
 
-                /* Additional Optional Power Control Pins from your Pinout if needed */
-                /* WAKE: GPIODV_27 (Pin 29), BUSY: GPIOAO_2 (Pin 31) */
+                /* IRQ: Chip 1, Line 79 (Physical Pin 22) */
+                spi-irq-gpios  = <&gpio 79 0>;
 
                 status = "okay";
             };
+
+            spidev@1 { reg = <1>; status = "disabled"; };
+            spidev@2 { reg = <2>; status = "disabled"; };
         };
     };
 };
