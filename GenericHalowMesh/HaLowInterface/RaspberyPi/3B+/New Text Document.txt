@@ -1,0 +1,196 @@
+PINOUT
+#+----------------+--------------------+----------------------------+------------------------------+
+#| MM6108         | Role               | RPi Signal / GPIO          | Notes                        |
+#+----------------+--------------------+----------------------------+------------------------------+
+#| 3V3            | Power              | 3.3 (Pin 1 or 17)          | Module VDD 3.3 V             |
+#| GND            | Ground             | Any GND (6/9/14/20/25/30…) | Common ground                |
+#| INT            | Host IRQ           | GPIO 25  (Pin 22)          | Module -> host interrupt     |
+#| RESET          | Reset              | GPIO 5   (Pin 29)          | Active LOW  --> resets module|
+#| BUSY           |  Wake sequence     | GPIO 7   (Pin 26)          | \                            |
+#| WAKE           | WL_REG_ON / EN     | GPIO 3   (Pin 5)           | Active HIGH --> wakes module |
+#| CLK            | SPI0 SCLK          | GPIO 11  (Pin 23)          | SPI clock                    |
+#| MISO           | SPI0 MISO          | GPIO 9   (Pin 21)          | SPI data line                |
+#| MOSI           | SPI0 MOSI          | GPIO 10  (Pin 19)          | SPI command line             |
+#| CS             | SPI0 CEO0          | GPIO 8   (Pin 24)          |                              |
+#+----------------+--------------------+----------------------------+------------------------------+
+\*I'm not actually sure what this does but it's included in the wake sequence of the device tree overlay per the documentation so I left it
+
+
+#In review it looks like version changed when I tried this so I have to specify exact branches and tags to ensure compatability.
+
+#Use Raspberry Pi imager tool select 64 bit image for pi 3 series
+sudo apt update
+#Install needed dependices 
+sudo apt install git bc bison flex libssl-dev make libc6-dev libncurses5-dev -y 
+
+#Grab the appropriate kernel made by morse micro
+git clone --depth 1 --recurse-submodules --shallow-submodules  -b mm/rpi-6.12.21/1.17.x https://github.com/MorseMicro/rpi-linux.git 
+# Go into the  folder
+cd rpi-linux 
+# You need to tell the build system which specific chip architecture it's building for so it enables the correct baseline drivers.  these should be listed inthe Kernel folder
+-Raspberry pi 3 or 4:
+make bcm2711_defconfig
+ #Compile the Kernel (takes a while)  $(nproc)  uses all available cpus # aparently this takes like 24hrs if you do it on the pi
+make -j1 Image.gz modules dtbs
+
+nstall Kernel moduels
+sudo make modules_install
+
+7.) Copy the Kernel and Device Trees:
+sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
+sudo cp arch/arm64/boot/dts/overlays/*.dtb* /boot/firmware/overlays/
+sudo cp arch/arm64/boot/dts/overlays/README /boot/firmware/overlays/
+sudo cp arch/arm64/boot/Image.gz /boot/firmware/kernel8.img
+
+8.) reboot
+sudo reboot now
+
+9.) Check Kernel, you will know see your kernel is now the supported version from morse mirco.
+uname -a
+
+---------------------------- Change to ---------------------------
+
+git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/MorseMicro/morse-firmware.git
+cd morse-firmware
+sudo make install
+---------------------------- Change to below---------------------------
+cd ~ 
+ git clone --depth 1 --recurse-submodules --shallow-submodules  -b 1.17 https://github.com/MorseMicro/morse-firmware.git
+cd morse-firmware
+sudo make install
+ 
+
+
+
+cd ~
+git clone --depth 1 --recurse-submodules --shallow-submodules  --branch 1.17.9 https://github.com/MorseMicro/morse_driver.git
+cd morse_driver
+
+make KERNEL_SRC=/home/nodeuser/rpi-linux CONFIG_WLAN_VENDOR_MORSE=m CONFIG_MORSE_SPI=y CONFIG_MORSE_USER_ACCESS=y CONFIG_MORSE_VENDOR_COMMAND=y CONFIG_MORSE_COUNTRY=US
+
+sudo mkdir -p /lib/modules/$(uname -r)/extra
+sudo cp morse.ko /lib/modules/$(uname -r)/extra/
+sudo cp dot11ah/dot11ah.ko /lib/modules/$(uname -r)/extra/
+
+
+#Modified the /boot/firmware/config.txt
+sudo nano /boot/firmware/config.txt
+#uncomment: dtparam=spi=on 
+# Add at the bottom of the file: dtoverlay=morse-mm610x-spi 
+
+#Add DTO 
+git clone https://github.com/cjaddessi/AMANET.git
+cd AMANET/DogTracker/Hardware/RaspberryPi3B/WiFiHalow/HT-HC01P/DeviceTreeOverlayBuild
+dtc -@ \
+    -I dts \
+    -O dtb \
+    -o morse-mm610x-spi.dtbo \
+    morse-spi.dts
+
+
+sudo cp morse-mm610x-spi.dtbo /boot/firmware/overlays/
+
+
+
+wget https://resource.heltec.cn/download/HT-HC01P/BCF/driver_1_15_3/bcf_HC0P.bin
+chmod 755 bcf_HC0P.bin
+sudo cp bcf_HC0P.bin /usr/lib/firmware/morse
+sudo nano /etc/modprobe.d/morse.conf
+#Paste the following to force it to add the correct bcf on boot: options morse bcf=bcf_HC0P.bin country=US
+
+Physically remove all power then re power system
+ip a should now show new interface,
+
+Now we must set up the tools to interact with the wireless interface as the linux kernel has no support for HaLow all feq listed in iw list show as 5ghz
+
+
+sudo apt install -y libnl-3-dev libnl-genl-3-dev libnl-route-3-dev libusb-dev libusb-1.0-0-dev
+sudo apt install -y libssl-dev
+sudo apt install libnl-3-dev libnl-genl-3-dev libusb-1.0-0-dev pkg-config
+
+cd ~ 
+git clone --depth 1 --recurse-submodules --shallow-submodules  -b 1.17.9 https://github.com/MorseMicro/hostap.git
+cd hostap
+cp wpa_supplicant/defconfig wpa_supplicant/.config
+cp hostapd/defconfig hostapd/.config
+
+# Modify wpa_supplicant/.config to enabled MESH
+# Modify wpa_supplicant/.config to enabled MESH
+# Modify wpa_supplicant/.config to enabled MESH
+# Modify wpa_supplicant/.config to enabled MESH
+# Modify wpa_supplicant/.config to enabled MESH
+# Modify wpa_supplicant/.config to enabled MESH
+# Modify wpa_supplicant/.config to enabled MESH
+
+# Build wpa_supplicant
+cd ~/hostap
+CFLAGS="-Wno-error=sign-compare -Wno-error=deprecated-declarations" make -C wpa_supplicant/
+sudo CFLAGS="-Wno-error=sign-compare -Wno-error=deprecated-declarations" make install -C wpa_supplicant/
+CFLAGS="-Wno-error=sign-compare" make -C hostapd/
+sudo CFLAGS="-Wno-error=sign-compare" make install -C hostapd/
+
+
+cd ~ 
+git clone --depth 1 --recurse-submodules --shallow-submodules  -b 1.17.9 https://github.com/MorseMicro/morse_cli.git
+cd morse_cli
+
+make CONFIG_MORSE_TRANS_NL80211=1
+sudo make install_cli
+
+Physical power reset
+
+
+cat << EOF >> /home/nodeuser/morse_mesh_config/wpa_supplicant_s1g.conf
+network={
+        ssid="YOUR_SSID"
+        sae_password="YOUR_PASSWORD"
+        key_mgmt=SAE
+        mode=5
+        channel=46 #CHANGE AS NEEDED
+        op_class=69 #CHANGE AS NEEDED
+        country="US"
+        s1g_prim_chwidth=0 #CHANGE AS NEEDED
+        s1g_prim_1mhz_chan_index=0 #CHANGE AS NEEDED
+        dtim_period=1
+        mesh_rssi_threshold=-85
+        dot11MeshHWMPRootMode=0
+        dot11MeshGateAnnouncements=1
+        mbca_config=1
+        mbca_min_beacon_gap_ms=25
+        mbca_tbtt_adj_interval_sec=60
+        dot11MeshBeaconTimingReportInterval=10
+        mbss_start_scan_duration_ms=2048
+        mesh_beaconless_mode=0
+        mesh_dynamic_peering=0
+        pairwise=CCMP
+        ieee80211w=2
+        beacon_int=1000
+
+}
+EOF
+
+# specify halow adapter and run on each pi
+sudo wpa_supplicant_s1g -D nl80211 -iwlan2 -c /home/nodeuser/morse_mesh_config/wpa_supplicant_s1g.conf -dd
+
+#pi 1:
+sudo ip addr add 192.168.250.1/24 dev wlan1
+sudo ip link set wlan1 up
+
+#pi 2:
+sudo ip addr add 192.168.250.2/24 dev wlan1
+sudo ip link set wlan1 up
+
+ping success
+
+
+
+
+
+
+
+
+
+make CONFIG_MORSE_TRANS_FTDI_SPI=1 ? idk here 
+make all
+sudo make install
+ 

@@ -1,0 +1,84 @@
+
+#In review it looks like version changed when I tried this so I have to specify exact branches and tags to ensure compatability.
+
+#Use Raspberry Pi imager tool select 64 bit image for pi 3 series
+sudo apt update
+#Install needed dependices 
+sudo apt install git bc bison flex libssl-dev make libc6-dev libncurses5-dev -y 
+
+#Grab the appropriate kernel made by morse micro
+git clone --depth 1 --recurse-submodules --shallow-submodules  -b mm/rpi-6.12.21/1.17.x https://github.com/MorseMicro/rpi-linux.git 
+# Go into the  folder
+cd rpi-linux 
+# You need to tell the build system which specific chip architecture it's building for so it enables the correct baseline drivers.  these should be listed inthe Kernel folder
+-Raspberry pi 3 or 4:
+make bcm2711_defconfig
+ #Compile the Kernel (takes a while)  $(nproc)  uses all available cpus # aparently this takes like 24hrs if you do it on the pi
+make -j1 Image.gz modules dtbs
+
+nstall Kernel moduels
+sudo make modules_install
+
+7.) Copy the Kernel and Device Trees:
+sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
+sudo cp arch/arm64/boot/dts/overlays/*.dtb* /boot/firmware/overlays/
+sudo cp arch/arm64/boot/dts/overlays/README /boot/firmware/overlays/
+sudo cp arch/arm64/boot/Image.gz /boot/firmware/kernel8.img
+
+8.) reboot
+sudo reboot now
+
+9.) Check Kernel, you will know see your kernel is now the supported version from morse mirco.
+uname -a
+
+---------------------------- Change to ---------------------------
+
+git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/MorseMicro/morse-firmware.git
+cd morse-firmware
+sudo make install
+---------------------------- Change to below---------------------------
+cd ~ 
+ git clone --depth 1 --recurse-submodules --shallow-submodules  -b 1.17 https://github.com/MorseMicro/morse-firmware.git
+cd morse-firmware
+sudo make install
+ 
+
+
+
+cd ~
+git clone --depth 1 --recurse-submodules --shallow-submodules  --branch 1.17.9 https://github.com/MorseMicro/morse_driver.git
+cd morse_driver
+
+make KERNEL_SRC=/home/nodeuser/rpi-linux CONFIG_WLAN_VENDOR_MORSE=m CONFIG_MORSE_SPI=y CONFIG_MORSE_USER_ACCESS=y CONFIG_MORSE_VENDOR_COMMAND=y CONFIG_MORSE_COUNTRY=US
+
+sudo mkdir -p /lib/modules/$(uname -r)/extra
+sudo cp morse.ko /lib/modules/$(uname -r)/extra/
+sudo cp dot11ah/dot11ah.ko /lib/modules/$(uname -r)/extra/
+
+
+#Modified the /boot/firmware/config.txt
+sudo nano /boot/firmware/config.txt
+#uncomment: dtparam=spi=on 
+# Add at the bottom of the file: dtoverlay=morse-mm610x-spi 
+
+#Add DTO 
+git clone https://github.com/cjaddessi/AMANET.git
+cd AMANET/DogTracker/Hardware/RaspberryPi3B/WiFiHalow/HT-HC01P/DeviceTreeOverlayBuild
+dtc -@ \
+    -I dts \
+    -O dtb \
+    -o morse-mm610x-spi.dtbo \
+    morse-spi.dts
+
+
+sudo cp morse-mm610x-spi.dtbo /boot/firmware/overlays/
+
+
+
+wget https://resource.heltec.cn/download/HT-HC01P/BCF/driver_1_15_3/bcf_HC0P.bin
+chmod 755 bcf_HC0P.bin
+sudo cp bcf_HC0P.bin /usr/lib/firmware/morse
+sudo nano /etc/modprobe.d/morse.conf
+#Paste the following to force it to add the correct bcf on boot: options morse bcf=bcf_HC0P.bin 
+
+Physically remove all power then re power system

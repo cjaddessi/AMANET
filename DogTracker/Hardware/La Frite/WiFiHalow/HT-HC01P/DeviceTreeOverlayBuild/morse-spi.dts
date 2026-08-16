@@ -2,19 +2,18 @@
 /plugin/;
 
 / {
-    /* Target the Amlogic meson platform instead of Broadcom */
     compatible = "librecomp,aml-s805x-cc", "amlogic,meson-gxl";
 
     fragment@0 {
-        /* On La Frite, the main SPI controller on the header is typically spicc0 or spi0 */
-        target = <&spicc0>; 
+        /* This matches the exact path from your dmesg log output */
+        target-path = "/soc/bus@c1100000/spi@8d80"; 
+        
         __overlay__ {
             status = "okay";
             #address-cells = <1>;
             #size-cells   = <0>;
 
             /* CS pin: Chip 1, Line 89 (Physical Pin 24) */
-            /* 1 means GPIO_ACTIVE_LOW */
             cs-gpios = <&gpio 89 1>; 
 
             mm6108@0 {
@@ -26,7 +25,6 @@
                 reset-gpios    = <&gpio 76 1>;
 
                 /* POWER: WAKE is Chip 0 Line 0 (Pin 5) | BUSY is Chip 1 Line 80 (Pin 26) */
-                /* Note: Chip 0 uses the AO (Always-On) GPIO controller bank */
                 power-gpios    = <&gpio_ao 0 0>, <&gpio 80 0>;
 
                 /* IRQ: Chip 1, Line 79 (Physical Pin 22) */
