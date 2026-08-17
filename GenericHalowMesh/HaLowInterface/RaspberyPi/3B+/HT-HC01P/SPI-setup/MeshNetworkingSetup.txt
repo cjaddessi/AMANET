@@ -1,0 +1,175 @@
+# the document interfaceInstall.txt must be completed before we arrive here 
+
+# Create and start the systemd service for wpa_supplicans1g
+sudo nano /etc/systemd/system/wpa_supplicant-s1g.service
+[Unit]
+Description=Morse Micro 802.11ah S1G Mesh
+After=network-pre.target
+Wants=network-pre.target
+Before=babeld.service
+
+[Service]
+Type=simple
+
+ExecStart=/usr/local/sbin/wpa_supplicant_s1g -D nl80211 -i wlan2 -c /home/nodeuser/morse_mesh_config/wpa_supplicant_s1g.conf
+
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+
+sudo systemctl enable wpa_supplicant-s1g.service
+sudo systemctl start wpa_supplicant-s1g.service
+
+#perform on both and test
+ping -6 -I wlan1 <IPV6 of other device>
+
+
+
+
+MESH_IF="wlan1"
+LAN_IF="eth0"
+
+# now move on to more advanced configuration
+# -------------------------
+# Update + install packages
+# -------------------------
+echo "[+] Installing packages..."
+apt update
+apt install -y babeld dnsmasq iw
+
+# -------------------------
+# Configure babeld
+# -------------------------
+echo "[+] Configuring babeld..."
+cat > /etc/babeld.conf <<EOF
+interface ${MESH_IF} type wireless
+
+interface ${LAN_IF}
+  redistribute
+EOF
+
+systemctl enable babeld
+
+# time to configure network interfaces, 
+# My idea is to use part of the unique ipv6 eui-64 address 
+# then convert the last octect to decimal for the LAN (eth0) subnet in this poject
+
+# -------------------------
+# Configure network interfaces
+# -------------------------
+LAN_IP="10.10.123.1"
+LAN_NETMASK="255.255.255.0"
+
+echo "[+] Configuring /etc/network/interfaces..."
+cat > /etc/network/interfaces <<EOF
+source /etc/network/interfaces.d/*
+
+auto lo
+iface lo inet loopback
+
+auto ${LAN_IF}
+iface ${LAN_IF} inet static
+    address ${LAN_IP}
+    netmask ${LAN_NETMASK}
+
+EOF
+
+
+# -------------------------
+# Enable IPv6 forwarding
+# -------------------------
+echo "[+] Enabling IPv6 forwarding..."
+grep -q "net.ipv6.conf.all.forwarding=1" /etc/sysctl.conf || \
+echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf
+
+sysctl -p
+
+# -------------------------
+# Configure dnsmasq
+# -------------------------
+# keep in the range as just 1 ips for now gateway is static and EUD is dhcp
+DHCP_RANGE_START="10.10.207.2"
+DHCP_RANGE_END="10.10.207.2"
+
+echo "[+] Configuring dnsmasq..."
+cat > /etc/dnsmasq.conf <<EOF
+interface=${LAN_IF}
+bind-interfaces
+
+dhcp-range=${DHCP_RANGE_START},${DHCP_RANGE_END},12h
+dhcp-option=3,${LAN_IP}
+EOF
+
+systemctl enable dnsmasq
+
+# -------------------------
+# Restart services
+# -------------------------
+echo "[+] Restarting services..."
+systemctl restart babeld
+systemctl restart dnsmasq
+
+# set up ipv4 on LAN for some reason this was the only way I could get it to work idk why
+nmcli connection show
+# pick the ehternet option's name
+# Set static IP and netmask
+sudo nmcli connection modify "netplan-eth0" ipv4.addresses "10.10.207.1/24"
+
+# Set method to manual (static)
+sudo nmcli connection modify "netplan-eth0" ipv4.method manual
+
+# Crucial: Ensure wlan0 remains the default internet gateway
+sudo nmcli connection modify "netplan-eth0" ipv4.never-default yes
+
+sudo nmcli connection down "netplan-eth0" 
+sudo nmcli connection up "netplan-eth0"
+
+
+
+
+TESTING:
+
+#notice wlan1 not showing up unless I manually restart service maybe other things are needed to load idk
+sudo nano /etc/sysctl.d/99-halow-ipv6.conf
+net.ipv6.conf.default.addr_gen_mode=0
+net.ipv6.conf.wlan2.addr_gen_mode=0
+
+
+
+sudo sysctl -w net.ipv6.conf.wlan2.addr_gen_mode=0
+
+
+
+# Manually set ipv6 on halow interface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+echo "[+] Disabling conflicting network managers..."
+
+# Disable dhcpcd entirely (Raspbian default)
+systemctl stop dhcpcd || true
+systemctl disable dhcpcd || true
+
+
