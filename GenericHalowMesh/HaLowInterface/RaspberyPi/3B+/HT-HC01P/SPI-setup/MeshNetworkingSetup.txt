@@ -59,24 +59,26 @@ systemctl enable babeld
 # then convert the last octect to decimal for the LAN (eth0) subnet in this poject
 
 # -------------------------
-# Configure network interfaces
+# Configure network interfaces not using the /etc/network/interfaces at the momment
 # -------------------------
 LAN_IP="10.10.123.1"
 LAN_NETMASK="255.255.255.0"
 
-echo "[+] Configuring /etc/network/interfaces..."
-cat > /etc/network/interfaces <<EOF
-source /etc/network/interfaces.d/*
+# set up ipv4 on LAN for some reason this was the only way I could get it to work idk why
+nmcli connection show
+# pick the ehternet option's name
+# Set static IP and netmask
+sudo nmcli connection modify "netplan-eth0" ipv4.addresses "10.10.207.1/24"
 
-auto lo
-iface lo inet loopback
+# Set method to manual (static)
+sudo nmcli connection modify "netplan-eth0" ipv4.method manual
 
-auto ${LAN_IF}
-iface ${LAN_IF} inet static
-    address ${LAN_IP}
-    netmask ${LAN_NETMASK}
+# Crucial: Ensure wlan0 remains the default internet gateway
+sudo nmcli connection modify "netplan-eth0" ipv4.never-default yes
 
-EOF
+sudo nmcli connection down "netplan-eth0" 
+sudo nmcli connection up "netplan-eth0"
+
 
 
 # -------------------------
@@ -85,6 +87,12 @@ EOF
 echo "[+] Enabling IPv6 forwarding..."
 grep -q "net.ipv6.conf.all.forwarding=1" /etc/sysctl.conf || \
 echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf
+
+# make sure the file actually has the below:
+net.ipv6.conf.all.forwarding = 1
+net.ipv6.conf.default.addr_gen_mode = 0
+net.ipv6.conf.wlan1.addr_gen_mode = 0
+
 
 sysctl -p
 
@@ -113,6 +121,15 @@ echo "[+] Restarting services..."
 systemctl restart babeld
 systemctl restart dnsmasq
 
+
+
+
+
+
+
+
+
+
 # set up ipv4 on LAN for some reason this was the only way I could get it to work idk why
 nmcli connection show
 # pick the ehternet option's name
@@ -128,8 +145,11 @@ sudo nmcli connection modify "netplan-eth0" ipv4.never-default yes
 sudo nmcli connection down "netplan-eth0" 
 sudo nmcli connection up "netplan-eth0"
 
-
-
+# idk if The above really worked, i later ran the below
+sudo ip link set eth0 up
+sudo ip addr flush dev eth0
+sudo ip addr add 10.10.207.1/24 dev eth0
+#plugged in ether net and ran ip a to see if up then it was up and it even persisted after boot.
 
 TESTING:
 
