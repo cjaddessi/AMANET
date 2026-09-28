@@ -1,0 +1,17 @@
+| Rule                         |       Start with |
+| ---------------------------- | ---------------: |
+| **Normal signal trace**      |      **1.00 mm** |
+| **3.3 V power trace**        |      **1.50 mm** |
+| **Ground trace**             |      **1.50 mm** |
+| **Minimum trace width**      |      **0.75 mm** |
+| **Trace-to-trace clearance** |      **1.00 mm** |
+| **Trace-to-pad clearance**   | **0.75–1.00 mm** |
+| **Copper-to-board edge**     |     **1.00 mm+** |
+| **Via hole**                 |      **1.00 mm** |
+| **Via pad**                  | **2.00–2.50 mm** |
+| **Via annular ring**         |     **≥0.50 mm** |
+| **Via-to-trace clearance**   |      **1.00 mm** |
+| **Via-to-via clearance**     |      **1.00 mm** |
+| **GPIO through-hole**        |      ~**1.0 mm** |
+| **GPIO pad**                 |  ~**1.8–2.0 mm** |
+| **Trace corners**            |          **45°** |

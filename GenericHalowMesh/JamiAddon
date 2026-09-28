@@ -1,0 +1,113 @@
+# Install jami on clients
+# Set up OpenDHT on one of the nodes
+sudo apt update
+
+sudo apt install -y \
+    git \
+    build-essential \
+    cmake \
+    pkg-config \
+    libasio-dev \
+    libgnutls28-dev \
+
+    libargon2-dev \
+    libmsgpack-dev \
+    libssl-dev \
+    libfmt-dev \
+    libjsoncpp-dev \
+    libhttp-parser-dev \
+    libreadline-dev \
+    libncurses-dev \
+    libcppunit-dev
+
+# Install python binding dependencies
+sudo apt-get install cython3 python3-dev python3-setuptools python3-build
+
+        libnettle-dev \
+
+cd ~
+git clone https://github.com/savoirfairelinux/opendht.git
+cd opendht
+
+ls
+
+
+mkdir build
+cd build
+
+sudo apt update
+sudo apt install -y cmake
+
+cmake ..
+
+
+
+# attempt 2
+
+# Install dependencies
+sudo apt install pkg-config libncurses5-dev libreadline-dev nettle-dev libgnutls28-dev libargon2-0-dev libmsgpack-dev libssl-dev libfmt-dev libjsoncpp-dev libhttp-parser-dev libasio-dev
+
+# Install python binding dependencies
+sudo apt-get install cython3 python3-dev python3-setuptools python3-build
+
+# Clone the repository
+git clone https://github.com/savoirfairelinux/opendht.git
+
+cd opendht
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+make -j$(nproc)
+sudo make install
+
+sudo apt update
+sudo apt install -y \
+    libargon2-dev \
+    libfmt-dev \
+    libreadline-dev \
+    libmsgpack-dev \
+    libmsgpack-cxx-dev
+
+rm -rf CMakeCache.txt CMakeFiles
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+
+sudo apt update
+sudo apt install -y libcppunit-dev
+
+cd ~/opendht/build
+rm -rf CMakeCache.txt CMakeFiles
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+
+make -j$(nproc)
+sudo make install
+
+sudo fallocate -l 2G /swapfile
+
+sudo chmod 600 /swapfile
+
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+swapon --show
+
+# attempt 3
+sudo apt update
+sudo apt install -y docker.io
+
+sudo systemctl enable --now docker
+
+sudo docker --version
+
+sudo docker run --rm hello-world
+
+sudo docker pull ghcr.io/savoirfairelinux/opendht/opendht-alpine
+
+sudo docker images | grep opendht
+
+#test:
+ sudo docker run -d \
+  --name opendht \
+  --restart unless-stopped \
+  -p 4222:4222/udp \
+  ghcr.io/savoirfairelinux/opendht/opendht-alpine \
+  dhtnode -b bootstrap.jami.net -p 4222 -s

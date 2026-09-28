@@ -11,7 +11,9 @@ Before=babeld.service
 [Service]
 Type=simple
 
+ExecStartPre=/bin/sleep 15
 ExecStart=/usr/local/sbin/wpa_supplicant_s1g -D nl80211 -i wlan2 -c /home/nodeuser/morse_mesh_config/wpa_supplicant_s1g.conf
+ExecStartPre=/sbin/sysctl -w net.ipv6.conf.wlan2.addr_gen_mode=0
 
 Restart=on-failure
 RestartSec=3
@@ -193,3 +195,4 @@ systemctl stop dhcpcd || true
 systemctl disable dhcpcd || true
 
 
+##################################### WPA
