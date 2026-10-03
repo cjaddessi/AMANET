@@ -90,7 +90,7 @@ sudo swapon /swapfile
 
 swapon --show
 
-# attempt 3
+# attempt 3 # success!!
 sudo apt update
 sudo apt install -y docker.io
 
